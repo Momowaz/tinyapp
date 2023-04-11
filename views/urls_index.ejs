@@ -19,7 +19,7 @@
 
     <main style="margin: 1em;">
         <h3>My URLs</h3>
-        
+
         <table class="table">
             <thead>
                 <tr>
@@ -34,18 +34,26 @@
                             <%= id %>
                         </td>
                         <td>
-                            <%= urls[id] %>
+                            <a href="/urls/<%= id %>">
+                                <%= urls[id] %>
+                            </a>
+
                         </td>
                         <td>
-                        <form method="POST" action="/urls/<%= id %>/delete">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </td>
+                            <form method="GET" action="/urls/<%= id %>">
+                                <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form method="POST" action="/urls/<%= id %>/delete">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
                     </tr>
                     <% } %>
             </tbody>
         </table>
-    </form>
+        </form>
     </main>
 
     <!-- Bootstrap JS -->

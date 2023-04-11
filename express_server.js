@@ -23,7 +23,7 @@ app.post("/urls", (req, res) => {
     urlDatabase[newID] = longURL;
     res.redirect(`/urls`);
   });
-  
+
 // GET route to show all URLs in database
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
@@ -35,10 +35,10 @@ app.get('/urls', (req, res) => {
   });
 
   // GET route to show URL resource
-app.get('/urls/:shortURL', (req, res) => {
+  app.get('/urls/:shortURL', (req, res) => {
     const templateVars = { id: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
     res.render('urls_show', templateVars);
-});
+  });
 
 
 
@@ -49,7 +49,13 @@ app.get('/urls/:shortURL', (req, res) => {
     res.redirect('/urls');
   });
 
-
+  // Add a POST route to edit the url
+  app.post('/urls/:id', (req, res) => {
+    const id = req.params.id;
+  const newURL = req.body.newURL;
+  urlDatabase[id] = newURL;
+  res.redirect('/urls');
+  });
 
 function generateRandomString() {
     let result = '';
