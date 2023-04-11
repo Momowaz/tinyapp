@@ -19,6 +19,7 @@
 
     <main style="margin: 1em;">
         <h3>My URLs</h3>
+        
         <table class="table">
             <thead>
                 <tr>
@@ -35,10 +36,16 @@
                         <td>
                             <%= urls[id] %>
                         </td>
+                        <td>
+                        <form method="POST" action="/urls/<%= id %>/delete">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
                     </tr>
                     <% } %>
             </tbody>
         </table>
+    </form>
     </main>
 
     <!-- Bootstrap JS -->

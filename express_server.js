@@ -16,43 +16,67 @@ const urlDatabase = {
 };
 
 
+// POST route to create new URL
+app.post("/urls", (req, res) => {
+    const longURL = req.body.longURL;
+    const newID = generateRandomString();
+    urlDatabase[newID] = longURL;
+    res.redirect(`/urls`);
+  });
+  
+// GET route to show all URLs in database
 app.get('/urls', (req, res) => {
-    const templateVars = { urls: urlDatabase};
-    res.render('urls_index', templateVars);
+  const templateVars = { urls: urlDatabase};
+  res.render('urls_index', templateVars);
 });
 
-app.post("/urls", (req, res) => {
-    console.log(req.body); // Log the POST request body to the console
-    res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  app.get('/urls/new', (req, res) => {
+    res.render('urls_new');
   });
 
-app.get('/urls/new', (req, res) => {
-    res.render('urls_new');
-});
-
-app.get('/urls/:id', (req, res) => {
-    const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  // GET route to show URL resource
+app.get('/urls/:shortURL', (req, res) => {
+    const templateVars = { id: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
     res.render('urls_show', templateVars);
 });
 
 
-app.get('/', (req, res) => {
-    res.send("Hello!");
-});
+
+  // Add a POST route that removes a URL resource: POST /urls/:id/delete
+  app.post('/urls/:id/delete', (req, res) => {
+    const id = req.params.id;
+    delete urlDatabase[id];
+    res.redirect('/urls');
+  });
+
+
+
+function generateRandomString() {
+    let result = '';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
 
 app.listen(PORT, () => {
     console.log("Example app listening on port", PORT);
 });
 
-app.get('/hello', (req, res) => {
-    res.send('<html><body>Hello <b>world</b></body></html>\n');
-});
+// app.get('/', (req, res) => {
+//     res.send("Hello!");
+// });
 
-app.get('/set', (req, res) => {
-    const a = 1;
-    res.send(`a = ${a}`);
-});
+// app.get('/hello', (req, res) => {
+//     res.send('<html><body>Hello <b>world</b></body></html>\n');
+// });
 
-app.get('/fetch', (req, res) => {
-    res.send(`a = ${a}`);
-});
+// app.get('/set', (req, res) => {
+//     const a = 1;
+//     res.send(`a = ${a}`);
+// });
+
+// app.get('/fetch', (req, res) => {
+//     res.send(`a = ${a}`);
+// });
