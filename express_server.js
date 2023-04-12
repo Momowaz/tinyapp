@@ -19,6 +19,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+////////////////< GET >////////////////
 
 // GET route to show all URLs in database
 app.get('/urls', (req, res) => {
@@ -32,20 +33,30 @@ app.get('/urls', (req, res) => {
 });
 
 app.get('/urls/login', (req, res) => {
+  const templateVars = {
+    username: req.cookies['username']
+  };
   // res.locals.username = req.cookies.username;
-  res.render('login');
+  res.render('login', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {
+    username: req.cookies['username']
+  };
+  res.render('urls_new', templateVars);
 });
 
 // GET route to show URL resource
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { id: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { 
+    id: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies['username'] };
   res.render('urls_show', templateVars);
 });
 
+////////////////< POSTS >////////////////
 
 // POST route to create new URL
 app.post("/urls", (req, res) => {
@@ -77,6 +88,11 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+// Create Cookie after login
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls');
+});
 
 
 function generateRandomString() {
