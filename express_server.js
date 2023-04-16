@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser')
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
@@ -13,46 +14,79 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
+////////////////< DATABASE >////////////////
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  1: {
+    id: 1,
+    email: "user@example.com",
+    password: "123",
+  },
+  2: {
+    id: 2,
+    email: "user2@example.com",
+    password: "123",
+  },
+};
+
+const findUser = (email) => {
+  for (const userID in users) {
+    const user = users[userID];
+    if (user.email === email) {
+      return user;
+    }
+  }
+  return null;
+}
+
+
 ////////////////< GET >////////////////
 
-// GET route to show all URLs in database
+app.get('/', (req, res) => {
+  const userID = req.cookies.userId;
+
+  if(!userID) {
+    res.redirect('/urls/login');
+    return;
+  }
+});
+
+
+
 app.get('/urls', (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    username: req.cookies['username']
-  };
-  console.log('req.cookies', req.cookies);
-  // console.log('username inside urls GET: ', templateVars.username);
+  const templateVars = { user: users[req.cookies.userId], urlDatabase};
   res.render('urls_index', templateVars);
 });
 
-app.get('/urls/login', (req, res) => {
-  const templateVars = {
-    username: req.cookies['username']
-  };
-  // res.locals.username = req.cookies.username;
+app.get('/login', (req, res) => {
+  const templateVars = {user: null };
   res.render('login', templateVars);
 });
 
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
 app.get('/urls/new', (req, res) => {
-  const templateVars = {
-    username: req.cookies['username']
-  };
+  const templateVars = { user: users[req.cookies.userId], urlDatabase};
   res.render('urls_new', templateVars);
 });
 
 // GET route to show URL resource
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { 
-    id: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies['username'] };
+  const shortURL = req.params.shortURL;
+  const templateVars = { user: users[req.cookies.userId], id: shortURL, longURL: urlDatabase[shortURL].longURL };
+  res.render('urls_show', templateVars);
+});
+
+app.get('/urls/:shortURL/edit', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const templateVars = { user: users[req.cookies.userId], id: shortURL, longURL: urlDatabase[shortURL].longURL };
   res.render('urls_show', templateVars);
 });
 
@@ -66,14 +100,14 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls`);
 });
 
-// Add a POST route that removes a URL resource: POST /urls/:id/delete
+// POST delete url
 app.post('/urls/:id/delete', (req, res) => {
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
 });
 
-// Add a POST route to edit the url
+// POST edit the url
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
   const newURL = req.body.UpdatedURL;
@@ -81,20 +115,55 @@ app.post('/urls/:id', (req, res) => {
     res.redirect('/urls');
 });
 
-// Create Cookie after login
+// POST login
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  res.cookie('username', username);
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = findUser(email);
+
+// Check if account is invalid
+if (user && password === user.password) {
+  res.cookie('userId', user.id);
   res.redirect('/urls');
+} else {
+  res.status(403).send('Invalid email or password');
+}
+
+
 });
+
+
+// POST New user registration
+app.post('/register', (req, res) => {
+  const newUserID = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    res.status(400).send('Email and password cannot be empty');
+    return;
+  }
+  const user = findUser(email);
+  if (user) {
+    res.status(400).send('Email already exists');
+    return;
+  } else {
+        users[newUserID] = {id: newUserID, email, password};
+        res.cookie('userId', newUserID);
+        res.redirect('/urls');
+  }
+
+});
+
 
 // Create Cookie after login
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
-  res.redirect('/urls');
+  res.clearCookie('userId');
+  res.redirect('/login');
 });
 
 
+// Create random ID
 function generateRandomString() {
   let result = '';
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

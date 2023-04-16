@@ -13,6 +13,7 @@
 </head>
 
 <body>
+
     <header>
         <%- include('./partials/_header'); %>
     </header>
@@ -28,17 +29,18 @@
                 </tr>
             </thead>
             <tbody>
-                <% for (let id in urls) { %>
+                <% for (let id in urlDatabase) { %>
                     <tr>
                         <td>
                             <%= id %>
                         </td>
                         <td>
                             <a href="/urls/<%= id %>">
-                                <%= urls[id] %>
+                                <%= urlDatabase[id] %>
                             </a>
 
                         </td>
+                        <% if (user) { %>
                         <td>
                             <form method="GET" action="/urls/<%= id %>">
                                 <button type="submit" class="btn btn-primary btn-sm">Edit</button>
@@ -49,6 +51,7 @@
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
+                        <% } %>
                     </tr>
                     <% } %>
             </tbody>

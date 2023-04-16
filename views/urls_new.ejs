@@ -16,6 +16,7 @@
         <%- include('./partials/_header') %>
     <main style="margin: 1em;">
         <h3>Create TinyURL</h3>
+        <% if (user) { %>
         <form class="form-inline" action="/urls" method="POST">
             <div class="form-group mb-2">
                 <label for="longURL">Enter a URL:</label>
@@ -29,6 +30,13 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
+        <% } else { %>
+            <div> Please login to create new URL</div>
+            <div class="navbar-text text-white mr-2">
+                Please Login
+            </div>
+                <a class="nav-item nav-link btn btn-primary" href="/login">Login</a>
+        <% } %>
     </main>
 
     <!-- Bootstrap JS -->
