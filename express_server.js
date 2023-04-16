@@ -14,7 +14,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 ////////////////< DATABASE >////////////////
-
 const urlDatabase = {
   b2xVn2: { 
     longURL: "http://www.lighthouselabs.ca",
@@ -39,6 +38,16 @@ const users = {
   },
 };
 
+// const urlsForUser = (id) => {
+//   const result = {}
+//   for (let shortURL in urlDatabase) {
+//     if () { // id matches the tracking id 
+//       // add to result object
+//     }
+//   }
+//   return result 
+// }
+
 const findUser = (email) => {
   for (const userID in users) {
     const user = users[userID];
@@ -62,6 +71,7 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { user: users[req.cookies.userId], urlDatabase };
+  // const templateVars = { user: users[req.cookies.userId], urlDatabase: urlsForUser(req.cookies.userId) };
   res.render("urls_index", templateVars);
 });
 
@@ -124,7 +134,7 @@ app.get("/urls/:shortURL/edit", (req, res) => {
 app.post("/urls", (req, res) => {
   const newLongURL = req.body.longURL;
   const newID = generateRandomString();
-  urlDatabase[newID] = {longURL: newLongURL};
+  urlDatabase[newID] = { longURL: newLongURL, userTrackingID: req.cookies.userID};
   res.redirect(`/urls`);
 });
 
@@ -143,40 +153,55 @@ app.post("/urls/:id", (req, res) => {
     res.redirect("/urls");
 });
 
-// POST login
-app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const user = findUser(email);
-
-  // Check if account is invalid
-  if (user && password === user.password) {
-    res.cookie("userId", user.id);
-    res.redirect("/urls");
-  } else {
-    res.status(403).send("Invalid email or password");
-  }
-});
 
 // POST New user registration
 app.post("/register", (req, res) => {
-  const newUserID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-
   if (!email || !password) {
     res.status(400).send("Email and password cannot be empty");
     return;
   }
   const user = findUser(email);
+
   if (user) {
     res.status(400).send("Email already exists");
     return;
-  } else {
-    users[newUserID] = { id: newUserID, email, password };
-    res.cookie("userId", newUserID);
-    res.redirect("/urls");
   }
+
+  const newUserID = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  users[newUserID] = { id: newUserID, email, password: hashedPassword };
+  res.cookie("userId", newUserID);
+  res.redirect("/urls");
+});
+
+
+// POST login
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password) {
+    res.status(400).send("Email and password cannot be empty");
+    return;
+  }
+  
+  const user = findUser(email);
+
+  // Check if account is invalid
+  if (!user) {
+    return res.status(403).send("Invalid email");
+  }
+
+  const passwordMatch = bcrypt.compareSync(password, user.password);
+  
+  if (!passwordMatch) {
+   return res.status(403).send("Invalid password");
+  } 
+
+  res.cookie("userId", user.id);
+  res.redirect("/urls");  
 });
 
 // Create Cookie after login

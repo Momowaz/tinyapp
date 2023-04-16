@@ -20,7 +20,8 @@
 
     <main style="margin: 1em;">
         <h3>My URLs</h3>
-
+        
+        <% if (user) { %>
         <table class="table">
             <thead>
                 <tr>
@@ -40,7 +41,6 @@
                             </a>
 
                         </td>
-                        <% if (user) { %>
                         <td>
                             <form method="GET" action="/urls/<%= id %>">
                                 <button type="submit" class="btn btn-primary btn-sm">Edit</button>
@@ -53,10 +53,11 @@
                         </td>
                         <% } %>
                     </tr>
-                    <% } %>
             </tbody>
         </table>
-        </form>
+        <% } else { %>
+            <div>Please login to see the content</div>
+            <% } %>
     </main>
 
     <!-- Bootstrap JS -->
