@@ -9,6 +9,11 @@ TinyApp is a full stack web application built with Node and Express that allows 
 (3) User should be able to create/update/Delete their own URL
 (4) User will logout 
 
+## Screenshots
+- https://github.com/Momowaz/tinyapp/blob/master/docs/urls-page.png
+- https://github.com/Momowaz/tinyapp/blob/master/docs/logged-in-page.png
+- https://github.com/Momowaz/tinyapp/blob/master/docs/create-newURL.png
+- https://github.com/Momowaz/tinyapp/blob/master/docs/edit-page.png
 
 
 ## Dependencies
