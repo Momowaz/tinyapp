@@ -1,4 +1,4 @@
-const getUserByEmail = require('./helpers.js') 
+const getUserByEmail = require('./helpers.js')
 const express = require("express");
 // const cookieParser = require("cookie-parser"); // not used anymore
 const cookieSession = require("cookie-session");
@@ -29,14 +29,14 @@ app.use(cookieSession({
 
 ////////////////< DATABASE >////////////////
 const urlDatabase = {
-  b2xVn2: { 
+  b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
     userTrackingID: "aJ48lW",
   },
   i3BoGr: {
     longURL: "http://www.lighthouselabs",
     usersTrackingID: "aJ48lW"
-  } 
+  }
 };
 
 const usersDatabase = {
@@ -61,7 +61,7 @@ const urlsForUser = (id) => {
       result[shortURL] = urlDatabase[shortURL];
     }
   }
-  return result 
+  return result
 }
 
 ////////////////< GET >////////////////
@@ -145,7 +145,7 @@ app.post("/urls", (req, res) => {
   const newLongURL = req.body.longURL;
   const newID = generateRandomString();
   const userTrackingID = req.session.userId;
-  urlDatabase[newID] = { longURL: newLongURL, userTrackingID: userTrackingID};
+  urlDatabase[newID] = { longURL: newLongURL, userTrackingID: userTrackingID };
   res.redirect(`/urls`);
 });
 
@@ -161,8 +161,8 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.UpdatedURL;
   const userTrackingID = req.session.userId;
-    urlDatabase[id].longURL = newURL;
-    res.redirect("/urls");
+  urlDatabase[id].longURL = newURL;
+  res.redirect("/urls");
 });
 
 
@@ -198,7 +198,7 @@ app.post("/login", (req, res) => {
     res.status(400).send("Email and password cannot be empty");
     return;
   }
-  
+
   const user = getUserByEmail(email, usersDatabase);
 
   // Check if account is invalid
@@ -207,13 +207,13 @@ app.post("/login", (req, res) => {
   }
 
   const passwordMatch = bcrypt.compareSync(password, user.password);
-  
+
   if (!passwordMatch) {
-   return res.status(403).send("Invalid password");
-  } 
+    return res.status(403).send("Invalid password");
+  }
 
   req.session.userId = user.id;
-  res.redirect("/urls");  
+  res.redirect("/urls");
 });
 
 // Create Cookie after login
@@ -237,5 +237,3 @@ function generateRandomString() {
 app.listen(PORT, () => {
   console.log("Example app listening on port", PORT);
 });
-
-// module.exports = usersDatabase;
