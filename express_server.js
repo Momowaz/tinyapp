@@ -1,3 +1,4 @@
+const getUserByEmail = require('./helpers.js') 
 const express = require("express");
 // const cookieParser = require("cookie-parser"); // not used anymore
 const cookieSession = require("cookie-session");
@@ -38,7 +39,7 @@ const urlDatabase = {
   } 
 };
 
-const users = {
+const usersDatabase = {
   1: {
     id: 1,
     email: "user@example.com",
@@ -63,21 +64,11 @@ const urlsForUser = (id) => {
   return result 
 }
 
-const findUser = (email) => {
-  for (const userID in users) {
-    const user = users[userID];
-    if (user.email === email) {
-      return user;
-    }
-  }
-  return null;
-};
-
 ////////////////< GET >////////////////
 
 app.get("/", (req, res) => {
   const userId = req.session.userId;
-  const user = users[userId];
+  const user = usersDatabase[userId];
 
   if (!user) {
     res.redirect("/urls/login");
@@ -86,13 +77,13 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { user: users[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
+  const templateVars = { user: usersDatabase[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
   res.render("urls_index", templateVars);
 });
 
 app.get("/login", (req, res) => {
   const userId = req.session.userId;
-  const user = users[userId];
+  const user = usersDatabase[userId];
   if (user) {
     res.redirect("/urls");
   } else {
@@ -103,7 +94,7 @@ app.get("/login", (req, res) => {
 
 app.get("/register", (req, res) => {
   const userId = req.session.userId;
-  const user = users[userId];
+  const user = usersDatabase[userId];
   if (user) {
     res.redirect("/urls");
   } else {
@@ -112,7 +103,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
+  const templateVars = { user: usersDatabase[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
   res.render("urls_new", templateVars);
 });
 
@@ -125,7 +116,7 @@ app.get("/urls/:shortURL", (req, res) => {
       res.status(404).send("This short URL does not exist.");
     } else {
       const templateVars = {
-        user: users[req.session.userId],
+        user: usersDatabase[req.session.userId],
         id: shortURL,
         longURL: urlDatabase[shortURL].longURL,
         urlDatabase: urlsForUser(req.session.userId)
@@ -140,7 +131,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
   const templateVars = {
-    user: users[req.session.userId],
+    user: usersDatabase[req.session.userId],
     id: shortURL,
     longURL: urlDatabase[shortURL],
   };
@@ -183,7 +174,7 @@ app.post("/register", (req, res) => {
     res.status(400).send("Email and password cannot be empty");
     return;
   }
-  const user = findUser(email);
+  const user = getUserByEmail(email, usersDatabase);
 
   if (user) {
     res.status(400).send("Email already exists");
@@ -193,7 +184,7 @@ app.post("/register", (req, res) => {
   const newUserID = generateRandomString();
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  users[newUserID] = { id: newUserID, email, password: hashedPassword };
+  usersDatabase[newUserID] = { id: newUserID, email, password: hashedPassword };
   req.session.userId = newUserID;
   res.redirect("/urls");
 });
@@ -208,7 +199,7 @@ app.post("/login", (req, res) => {
     return;
   }
   
-  const user = findUser(email);
+  const user = getUserByEmail(email, usersDatabase);
 
   // Check if account is invalid
   if (!user) {
@@ -221,13 +212,14 @@ app.post("/login", (req, res) => {
    return res.status(403).send("Invalid password");
   } 
 
-  res.session("userId", user.id);
+  req.session.userId = user.id;
   res.redirect("/urls");  
 });
 
 // Create Cookie after login
 app.post("/logout", (req, res) => {
-  res.clearCookie("userId");
+  // res.clearCookie("userId");
+  req.session = null;
   res.redirect("/login");
 });
 
@@ -245,3 +237,5 @@ function generateRandomString() {
 app.listen(PORT, () => {
   console.log("Example app listening on port", PORT);
 });
+
+// module.exports = usersDatabase;
