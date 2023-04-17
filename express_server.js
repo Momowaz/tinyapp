@@ -1,5 +1,7 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser"); // not used anymore
+const cookieSession = require("cookie-session");
+const crypto = require('crypto');
 const bcrypt = require("bcrypt");
 const app = express();
 const PORT = 8080;
@@ -11,7 +13,18 @@ app.set("view engine", "ejs");
 /* The body-parser library will convert the request body from .. 
     .. a Buffer into string that we can read.  */
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+
+// we are generating encrypted key for our cookie session
+const key = crypto.randomBytes(32).toString('hex');
+
+// app.use(cookieParser()); // when we used cookie to store data in plain text
+
+// but now we are using encrypted cookies
+app.use(cookieSession({
+  name: 'session',
+  keys: [key],
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 ////////////////< DATABASE >////////////////
 const urlDatabase = {
@@ -63,7 +76,7 @@ const findUser = (email) => {
 ////////////////< GET >////////////////
 
 app.get("/", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   const user = users[userId];
 
   if (!user) {
@@ -73,12 +86,12 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { user: users[req.cookies.userId], urlDatabase: urlsForUser(req.cookies.userId) };
+  const templateVars = { user: users[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
   res.render("urls_index", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   const user = users[userId];
   if (user) {
     res.redirect("/urls");
@@ -89,7 +102,7 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   const user = users[userId];
   if (user) {
     res.redirect("/urls");
@@ -99,7 +112,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies.userId], urlDatabase: urlsForUser(req.cookies.userId) };
+  const templateVars = { user: users[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
   res.render("urls_new", templateVars);
 });
 
@@ -107,15 +120,15 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
 
-  if (req.cookies.userId) {
+  if (req.session.userId) {
     if (!urlDatabase[shortURL]) {
       res.status(404).send("This short URL does not exist.");
     } else {
       const templateVars = {
-        user: users[req.cookies.userId],
+        user: users[req.session.userId],
         id: shortURL,
         longURL: urlDatabase[shortURL].longURL,
-        urlDatabase: urlsForUser(req.cookies.userId)
+        urlDatabase: urlsForUser(req.session.userId)
       };
       res.render("urls_show", templateVars);
     }
@@ -127,7 +140,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
   const templateVars = {
-    user: users[req.cookies.userId],
+    user: users[req.session.userId],
     id: shortURL,
     longURL: urlDatabase[shortURL],
   };
@@ -140,7 +153,7 @@ app.get("/urls/:shortURL/edit", (req, res) => {
 app.post("/urls", (req, res) => {
   const newLongURL = req.body.longURL;
   const newID = generateRandomString();
-  const userTrackingID = req.cookies.userId;
+  const userTrackingID = req.session.userId;
   urlDatabase[newID] = { longURL: newLongURL, userTrackingID: userTrackingID};
   res.redirect(`/urls`);
 });
@@ -156,7 +169,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.UpdatedURL;
-  const userTrackingID = req.cookies.userId;
+  const userTrackingID = req.session.userId;
     urlDatabase[id].longURL = newURL;
     res.redirect("/urls");
 });
@@ -181,7 +194,7 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   users[newUserID] = { id: newUserID, email, password: hashedPassword };
-  res.cookie("userId", newUserID);
+  req.session.userId = newUserID;
   res.redirect("/urls");
 });
 
@@ -208,7 +221,7 @@ app.post("/login", (req, res) => {
    return res.status(403).send("Invalid password");
   } 
 
-  res.cookie("userId", user.id);
+  res.session("userId", user.id);
   res.redirect("/urls");  
 });
 
