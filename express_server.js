@@ -1,9 +1,10 @@
-const getUserByEmail = require('./helpers.js')
+const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers.js')
+const { urlDatabase, usersDatabase } = require('./database.js')
 const express = require("express");
 // const cookieParser = require("cookie-parser"); // not used anymore
 const cookieSession = require("cookie-session");
 const crypto = require('crypto');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
 
@@ -26,43 +27,6 @@ app.use(cookieSession({
   keys: [key],
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
-
-////////////////< DATABASE >////////////////
-const urlDatabase = {
-  b2xVn2: {
-    longURL: "http://www.lighthouselabs.ca",
-    userTrackingID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "http://www.lighthouselabs",
-    usersTrackingID: "aJ48lW"
-  }
-};
-
-const usersDatabase = {
-  1: {
-    id: 1,
-    email: "user@example.com",
-    password: "123",
-  },
-  2: {
-    id: 2,
-    email: "user2@example.com",
-    password: "123",
-  },
-};
-
-const urlsForUser = (id) => {
-  const result = {}
-  for (let shortURL in urlDatabase) {
-    // id matches the tracking id 
-    if (urlDatabase[shortURL].userTrackingID === id) {
-      // add to result object
-      result[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return result
-}
 
 ////////////////< GET >////////////////
 
@@ -126,16 +90,6 @@ app.get("/urls/:shortURL", (req, res) => {
   } else {
     res.status(403).send("Please login to edit the url");
   }
-});
-
-app.get("/urls/:shortURL/edit", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const templateVars = {
-    user: usersDatabase[req.session.userId],
-    id: shortURL,
-    longURL: urlDatabase[shortURL],
-  };
-  res.render("urls_show", templateVars);
 });
 
 ////////////////< POSTS >////////////////
@@ -223,16 +177,6 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-// Create random ID
-function generateRandomString() {
-  let result = "";
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
 
 app.listen(PORT, () => {
   console.log("Example app listening on port", PORT);
