@@ -35,7 +35,7 @@ app.get("/", (req, res) => {
   const user = usersDatabase[userId];
 
   if (!user) {
-    res.redirect("/urls/login");
+    res.redirect("/login");
     return;
   }
 });
@@ -62,7 +62,7 @@ app.get("/register", (req, res) => {
   if (user) {
     res.redirect("/urls");
   } else {
-    res.render("register");
+    res.render("register", {user});
   }
 });
 
@@ -74,10 +74,11 @@ app.get("/urls/new", (req, res) => {
 // GET route to show URL resource
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-
   if (req.session.userId) {
     if (!urlDatabase[shortURL]) {
       res.status(404).send("This short URL does not exist.");
+    } else if (urlDatabase[shortURL].userTrackingID !== req.session.userId) {
+      res.status(403).send("This URL doesn't belong to you");
     } else {
       const templateVars = {
         user: usersDatabase[req.session.userId],

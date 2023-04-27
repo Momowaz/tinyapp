@@ -25,21 +25,8 @@
                 style="width: 250px; margin: 1em" />
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
-
-        <button id="register-btn" class="btn btn-link">Create a new account</button>
-        <div id="register-form" style="display: none;">
-            <%- include('./register'); %>
-        </div>
     </main>
 
-    <script>
-        const registerBtn = document.querySelector("#register-btn");
-        const registerForm = document.querySelector("#register-form");
-    
-        registerBtn.addEventListener("click", () => {
-            registerForm.style.display = registerForm.style.display === "none" ? "block" : "none";
-        });
-    </script>
 
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
