@@ -11,9 +11,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Screenshots
 - [Home page without login](https://github.com/Momowaz/tinyapp/blob/master/docs/urls-page.png)
-- https://github.com/Momowaz/tinyapp/blob/master/docs/logged-in-page.png
-- https://github.com/Momowaz/tinyapp/blob/master/docs/create-newURL.png
-- https://github.com/Momowaz/tinyapp/blob/master/docs/edit-page.png
+- [Home page after login](https://github.com/Momowaz/tinyapp/blob/master/docs/logged-in-page.png)
+- [Create TinyURL page](https://github.com/Momowaz/tinyapp/blob/master/docs/create-newURL.png)
+- [Edit/Update URL](https://github.com/Momowaz/tinyapp/blob/master/docs/edit-page.png)
 
 
 ## Dependencies
