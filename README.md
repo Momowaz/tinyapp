@@ -10,7 +10,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 (4) User will logout 
 
 ## Screenshots
-- https://github.com/Momowaz/tinyapp/blob/master/docs/urls-page.png
+- [Home page without login](https://github.com/Momowaz/tinyapp/blob/master/docs/urls-page.png)
 - https://github.com/Momowaz/tinyapp/blob/master/docs/logged-in-page.png
 - https://github.com/Momowaz/tinyapp/blob/master/docs/create-newURL.png
 - https://github.com/Momowaz/tinyapp/blob/master/docs/edit-page.png
