@@ -34,7 +34,9 @@ app.get("/", (req, res) => {
   const userId = req.session.userId;
   const user = usersDatabase[userId];
 
-  if (!user) {
+  if (user) {
+    res.redirect("/urls");
+  } else {
     res.redirect("/login");
     return;
   }
@@ -67,23 +69,32 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  const userId = req.session.userId;
+  const user = usersDatabase[userId];
+  if (user) {
   const templateVars = { user: usersDatabase[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
   res.render("urls_new", templateVars);
+  } else {
+    const templateVars = { user: null };
+    res.render("login", templateVars);
+  }
 });
 
 // GET route to show URL resource
-app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
+app.get("/urls/:id", (req, res) => {
+  const id = req.params.id;
   if (req.session.userId) {
-    if (!urlDatabase[shortURL]) {
+    if (!urlDatabase[id]) {
       res.status(404).send("This short URL does not exist.");
-    } else if (urlDatabase[shortURL].userTrackingID !== req.session.userId) {
+    } else if (urlDatabase[id].userTrackingID !== req.session.userId) {
       res.status(403).send("This URL doesn't belong to you");
+    } else if (urlDatabase[id].longURL === '') {
+      res.status(403).send("The long URL is empty");
     } else {
       const templateVars = {
         user: usersDatabase[req.session.userId],
-        id: shortURL,
-        longURL: urlDatabase[shortURL].longURL,
+        id: id,
+        longURL: urlDatabase[id].longURL,
         urlDatabase: urlsForUser(req.session.userId)
       };
       res.render("urls_show", templateVars);
