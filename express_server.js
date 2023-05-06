@@ -104,9 +104,14 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
-// app.get("/u/:id", (req,res) => {
-
-// })
+app.get("/u/:id", (req,res) => {
+  const id = req.params.id;
+  if (!urlDatabase[id]) {
+    res.status(404).send("This URL does not exist.");
+  } else {
+    res.redirect(urlDatabase[id].longURL);
+  }
+});
 
 ////////////////< POSTS >////////////////
 
