@@ -1,9 +1,13 @@
-const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers.js')
-const { urlDatabase, usersDatabase } = require('./database.js')
+const {
+  getUserByEmail,
+  generateRandomString,
+  urlsForUser,
+} = require("./helpers.js");
+const { urlDatabase, usersDatabase } = require("./database.js");
 const express = require("express");
 // const cookieParser = require("cookie-parser"); // not used anymore
 const cookieSession = require("cookie-session");
-const crypto = require('crypto');
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
@@ -17,16 +21,18 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 // we are generating encrypted key for our cookie session
-const key = crypto.randomBytes(32).toString('hex');
+const key = crypto.randomBytes(32).toString("hex");
 
 // app.use(cookieParser()); // when we used cookie to store data in plain text
 
 // but now we are using encrypted cookies
-app.use(cookieSession({
-  name: 'session',
-  keys: [key],
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+app.use(
+  cookieSession({
+    name: "session",
+    keys: [key],
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  })
+);
 
 ////////////////< GET >////////////////
 
@@ -43,7 +49,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { user: usersDatabase[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
+  const templateVars = {
+    user: usersDatabase[req.session.userId],
+    urlDatabase: urlsForUser(req.session.userId),
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -64,7 +73,7 @@ app.get("/register", (req, res) => {
   if (user) {
     res.redirect("/urls");
   } else {
-    res.render("register", {user});
+    res.render("register", { user });
   }
 });
 
@@ -72,8 +81,11 @@ app.get("/urls/new", (req, res) => {
   const userId = req.session.userId;
   const user = usersDatabase[userId];
   if (user) {
-  const templateVars = { user: usersDatabase[req.session.userId], urlDatabase: urlsForUser(req.session.userId) };
-  res.render("urls_new", templateVars);
+    const templateVars = {
+      user: usersDatabase[req.session.userId],
+      urlDatabase: urlsForUser(req.session.userId),
+    };
+    res.render("urls_new", templateVars);
   } else {
     const templateVars = { user: null };
     res.render("login", templateVars);
@@ -88,14 +100,14 @@ app.get("/urls/:id", (req, res) => {
       res.status(404).send("This short URL does not exist.");
     } else if (urlDatabase[id].userTrackingID !== req.session.userId) {
       res.status(403).send("This URL doesn't belong to you");
-    } else if (urlDatabase[id].longURL === '') {
+    } else if (urlDatabase[id].longURL === "") {
       res.status(403).send("The long URL is empty");
     } else {
       const templateVars = {
         user: usersDatabase[req.session.userId],
         id: id,
         longURL: urlDatabase[id].longURL,
-        urlDatabase: urlsForUser(req.session.userId)
+        urlDatabase: urlsForUser(req.session.userId),
       };
       res.render("urls_show", templateVars);
     }
@@ -104,7 +116,7 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
-app.get("/u/:id", (req,res) => {
+app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   if (!urlDatabase[id]) {
     res.status(404).send("This URL does not exist.");
@@ -117,28 +129,56 @@ app.get("/u/:id", (req,res) => {
 
 // POST route to create new URL
 app.post("/urls", (req, res) => {
-  const newLongURL = req.body.longURL;
-  const newID = generateRandomString();
-  const userTrackingID = req.session.userId;
-  urlDatabase[newID] = { longURL: newLongURL, userTrackingID: userTrackingID };
-  res.redirect(`/urls/${newID}`);
+  const userId = req.session.userId;
+  const user = usersDatabase[userId];
+  if (user) {
+    const newLongURL = req.body.longURL;
+    const newID = generateRandomString();
+    const userTrackingID = req.session.userId;
+    urlDatabase[newID] = {
+      longURL: newLongURL,
+      userTrackingID: userTrackingID,
+    };
+    res.redirect(`/urls/${newID}`);
+  } else {
+    const templateVars = { user: null };
+    res.render("login", templateVars);
+  }
 });
 
 // POST delete url
 app.post("/urls/:id/delete", (req, res) => {
-  const id = req.params.id;
-  delete urlDatabase[id];
-  res.redirect("/urls");
+  const userId = req.session.userId;
+  const user = usersDatabase[userId];
+  if (user) {
+    const id = req.params.id;
+    delete urlDatabase[id];
+    res.redirect("/urls");
+  } else if (!urlDatabase[id]) {
+    res.status(404).send("This URL does not exist.");
+  } else {
+    const templateVars = { user: null };
+    res.render("login", templateVars);
+  }
 });
 
 // POST edit the url
 app.post("/urls/:id", (req, res) => {
-  const id = req.params.id;
-  const newURL = req.body.UpdatedURL;
-  urlDatabase[id].longURL = newURL;
-  res.redirect("/urls");
-});
+  const userId = req.session.userId;
+  const user = usersDatabase[userId];
 
+  if (user) {
+    const id = req.params.id;
+    const newURL = req.body.UpdatedURL;
+    urlDatabase[id].longURL = newURL;
+    res.redirect("/urls");
+  } else if (!urlDatabase[id]) {
+    res.status(404).send("This URL does not exist.");
+  } else {
+    const templateVars = { user: null };
+    res.render("login", templateVars);
+  }
+});
 
 // POST New user registration
 app.post("/register", (req, res) => {
@@ -162,7 +202,6 @@ app.post("/register", (req, res) => {
   req.session.userId = newUserID;
   res.redirect("/urls");
 });
-
 
 // POST login
 app.post("/login", (req, res) => {
@@ -196,7 +235,6 @@ app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
-
 
 app.listen(PORT, () => {
   console.log("Example app listening on port", PORT);
