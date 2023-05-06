@@ -104,6 +104,10 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
+// app.get("/u/:id", (req,res) => {
+
+// })
+
 ////////////////< POSTS >////////////////
 
 // POST route to create new URL
@@ -112,7 +116,7 @@ app.post("/urls", (req, res) => {
   const newID = generateRandomString();
   const userTrackingID = req.session.userId;
   urlDatabase[newID] = { longURL: newLongURL, userTrackingID: userTrackingID };
-  res.redirect(`/urls`);
+  res.redirect(`/urls/${newID}`);
 });
 
 // POST delete url
@@ -126,7 +130,6 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.UpdatedURL;
-  const userTrackingID = req.session.userId;
   urlDatabase[id].longURL = newURL;
   res.redirect("/urls");
 });
